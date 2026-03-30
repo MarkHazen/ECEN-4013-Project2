@@ -1,9 +1,28 @@
-void setup() {
-  // put your setup code here, to run once:
+String InBytes;
 
+void setup() {
+  // Serial setup
+  Serial.begin(9600);
+
+  // LED output setup
+  pinMode(LED_BUILTIN, OUTPUT);
 }
 
+// Control Loop
 void loop() {
-  // put your main code here, to run repeatedly:
+  if(Serial.available() > 0) {
+    // Recieves data from serial
+    InBytes = Serial.readStringUntil('\n');
 
+    // Checks command and changes LED Value
+    if(InBytes == "on") {
+      digitalWrite(LED_BUILTIN, HIGH);
+      Serial.write("LED on");
+    } else if (InBytes == "off") {
+      digitalWrite(LED_BUILTIN, LOW);
+      Serial.write("LED off");
+    } else {
+      Serial.write("Invalid Input");
+    }
+  }
 }
