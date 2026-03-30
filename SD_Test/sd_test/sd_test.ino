@@ -40,7 +40,7 @@ void loop() {
 
     line += String(data1);
     line += ", ";
-    line += Stirng(data2);
+    line += String(data2);
     line += ", ";
     line += String(data3);
 
