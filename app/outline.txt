@@ -1,0 +1,12 @@
+Launch app
+
+window opens: select com port, baud rate, option to launch, option to exit
+
+launch ->
+
+boxes of information:
+top left -> serial print for debugging, maybe option for orientation window
+bottom left -> current status tracking variables: sd card state, gps state, imu state, usb serial state, bluetooth serial state
+top right -> IMU Data: Angular Position, Acceleration, Magnetic
+bottom right -> GPS Data: Satelites, Position, Elevation
+exit button somewhere?
