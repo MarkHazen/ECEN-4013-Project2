@@ -1,0 +1,1 @@
+// Reference: https://forum.arduino.cc/t/communicating-data-from-arduino-to-pc-via-hc-05/970589
