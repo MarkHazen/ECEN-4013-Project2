@@ -2,7 +2,7 @@ import serial
 import time
 
 # TODO: CHANGE TO MATCH PORT OF DEVICE
-serialcomm = serial.Serial('COM7', 9600)
+serialcomm = serial.Serial('COM9', 9600)
 serialcomm.timeout = 1
 
 running = True
@@ -14,6 +14,7 @@ while running:
     if i == 'done':
         print('Finished Program')
         running = False
+        break
 
     # Write to serial
     serialcomm.write(i.encode())
