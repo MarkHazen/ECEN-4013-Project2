@@ -1,59 +1,79 @@
+/*
+  SD card datalogger
+
+  This example shows how to log data from three analog sensors
+  to an SD card using the SD library. Pin numbers reflect the default
+  SPI pins for Uno and Nano models
+
+  The circuit:
+   analog sensors on analog pins 0, 1, and 2
+   SD card attached to SPI bus as follows:
+ ** SDO - pin 11
+ ** SDI - pin 12
+ ** CLK - pin 13
+ ** CS - depends on your SD card shield or module.
+ 		Pin 10 used here for consistency with other Arduino examples
+    (for MKR Zero SD: SDCARD_SS_PIN)
+
+  created  24 Nov 2010
+  modified  24 July 2020
+  by Tom Igoe
+
+  This example code is in the public domain.
+
+*/
+
 #include <SPI.h>
 #include <SD.h>
 
-// Select is 4 for Adafruit Feather AdaLogger
 const int chipSelect = 4;
 
-const String HEADER = "Data 1, Data 2, Data 3";
-
-// Test Data
-int data1 = 1;
-int data2 = 10;
-int data3 = 100;
-
 void setup() {
-    Serial.begin(9600);
-    while(!Serial);
+  // Open serial communications and wait for port to open:
+  Serial.begin(9600);
+  // wait for Serial Monitor to connect. Needed for native USB port boards only:
+  while (!Serial);
 
-    Serial.print("Initialize SD card...");
+  Serial.print("Initializing SD card...");
 
-    if(!SD.begin(chipSelect)) {
-        Serial.println("Initialization failed: Could not open card.");
-        while(true);
-    }
+  if (!SD.begin(chipSelect)) {
+    Serial.println("initialization failed. Things to check:");
+    Serial.println("1. is a card inserted?");
+    Serial.println("2. is your wiring correct?");
+    Serial.println("3. did you change the chipSelect pin to match your shield or module?");
+    Serial.println("Note: press reset button on the board and reopen this Serial Monitor after fixing your issue!");
+    while (true);
+  }
 
-    File dataFile = SD.open("datalog.csv", FILE_WRITE);
-
-    if(!dataFile) {
-        Serial.println("Initialization failed: Could not open file.");
-        while(true);
-    }
-
-    dataFile.println(HEADER);
-    dataFile.close();
-
-    Serial.println("Initialization complete.");
+  Serial.println("initialization done.");
 }
 
 void loop() {
-    String line = "";
+  // make a string for assembling the data to log:
+  String dataString = "";
 
-    line += String(data1);
-    line += ", ";
-    line += String(data2);
-    line += ", ";
-    line += String(data3);
-
-    File dataFile = SD.open("datalog.csv", FILE_WRITE);
-
-    if(dataFile) {
-        dataFile.println(line);
-        dataFile.close();
-    } else {
-        Serial.println("Error opening datalog.csv");
+  // read three sensors and append to the string:
+  for (int analogPin = 0; analogPin < 3; analogPin++) {
+    int sensor = analogRead(analogPin);
+    dataString += String(sensor);
+    if (analogPin < 2) {
+      dataString += ",";
     }
+  }
 
-    data1++;
-    data2++;
-    data3++;
+  // open the file. note that only one file can be open at a time,
+  // so you have to close this one before opening another.
+  File dataFile = SD.open("datalog.txt", FILE_WRITE);
+
+  // if the file is available, write to it:
+  if (dataFile) {
+    dataFile.println(dataString);
+    dataFile.close();
+    // print to the serial port too:
+    Serial.println(dataString);
+  }
+  // if the file isn't open, pop up an error:
+  else {
+    Serial.println("error opening datalog.txt");
+  }
 }

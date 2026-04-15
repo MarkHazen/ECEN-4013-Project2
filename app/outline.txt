@@ -10,3 +10,9 @@ bottom left -> current status tracking variables: sd card state, gps state, imu 
 top right -> IMU Data: Angular Position, Acceleration, Magnetic
 bottom right -> GPS Data: Satelites, Position, Elevation
 exit button somewhere?
+
+Stretch Goals:
+Typed serial strings, leads with [DATA], [INFO], [ERROR]
+Runs with components down, represented in UI
+Pretty UI
+3D representation of orientation

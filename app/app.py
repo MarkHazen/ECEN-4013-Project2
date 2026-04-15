@@ -116,13 +116,13 @@ class MonitorPage(tk.Frame):
         # Quad 2
         #---------------------
         tk.Label(self.q2, text="IMU Data").pack()
-        self.angle_label = tk.Label(self.q2, text=f"X: 60.00, Y:70.00, Z:80.00")
+        self.angle_label = tk.Label(self.q2, text=f"ANGLE: X: 60.00, Y:70.00, Z:80.00")
         self.angle_label.pack()
 
-        self.accel_label = tk.Label(self.q2, text=f"X: 1, Y:2, Z:3")
+        self.accel_label = tk.Label(self.q2, text=f"ACCELERATION: X: 1, Y:2, Z:3")
         self.accel_label.pack()
 
-        self.mag_label = tk.Label(self.q2, text=f"X: 20, Y:40, Z:60")
+        self.mag_label = tk.Label(self.q2, text=f"MAGNETIC: X: 20, Y:40, Z:60")
         self.mag_label.pack()
 
         #---------------------
@@ -231,9 +231,9 @@ class MonitorPage(tk.Frame):
             ang_y = float(values[13])
             ang_z = float(values[14])
 
-            self.angle_label.config(text=f"X: {ang_x}, Y: {ang_y}, Z: {ang_z}")
-            self.accel_label.config(text=f"X: {acc_x}, Y: {acc_y}, Z: {acc_z}")
-            self.mag_label.config(text=f"X: {mag_x}, Y: {mag_y}, Z: {mag_z}")
+            self.angle_label.config(text=f"ANGLE: X: {ang_x}, Y: {ang_y}, Z: {ang_z}")
+            self.accel_label.config(text=f"ACCELERATION: X: {acc_x}, Y: {acc_y}, Z: {acc_z}")
+            self.mag_label.config(text=f"MAGNETIC: X: {mag_x}, Y: {mag_y}, Z: {mag_z}")
 
             self.sat_num_label.config(text=f"Connected Satellites: {sat_num}")
             self.date_time_label.config(text=f"Date: {date}, Time: {time}")
