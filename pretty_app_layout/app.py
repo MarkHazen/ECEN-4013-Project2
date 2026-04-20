@@ -6,7 +6,50 @@ import tkinter.font as tkFont
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import (FigureCanvasTkAgg, NavigationToolbar2Tk)
 
-class Window:
+class LaunchWindow:
+    def __init__(self, root):
+        self.root = root
+
+        #--------------------
+        # HEADER
+        #--------------------
+        header = Frame(root, background="#27124d")
+        header.pack(side=TOP, expand=False, fill=X)
+
+        title = Label(header, text="TITLE")
+        title.pack(side=LEFT, padx=10, pady=10)
+
+        #--------------------
+        # BODY
+        #--------------------
+        body = Frame(root)
+        body.pack(side=TOP, expand=True, fill=BOTH)
+
+        section1 = Frame(body, background="red")
+        section1.pack(side=TOP, expand=False, fill=X)
+
+        instructions = Label(section1, text="Enter your device information:")
+        instructions.pack(padx=10, pady=10)
+
+        section2 = Frame(body, background="blue")
+        section2.pack(side=TOP, expand=False, fill=X)
+
+        method_label = Label(section2, text="Choose the method of connection:")
+        method_label.pack(padx=10, pady=10)
+
+        section3 = Frame(body, background="green")
+        section3.pack(side=TOP, expand=False, fill=X)
+
+        com_label = Label(section3, text="Enter the COM port of your device:")
+        com_label.pack(padx=10, pady=10)
+
+        section4 = Frame(body, background="yellow")
+        section4.pack(side=TOP, expand=False, fill=X)
+
+        baud_label = Label(section1, text="Enter the baud rate of connetion:")
+        baud_label.pack(padx=10, pady=10)
+
+class MainWindow:
     def __init__(self, root):
         self.root = root
         self.y = [i**2 for i in range(101)]
@@ -156,5 +199,5 @@ class Window:
         self.root.after(200, self.plot)
 
 root = Tk()
-window = Window(root)
+window = LaunchWindow(root)
 root.mainloop()
