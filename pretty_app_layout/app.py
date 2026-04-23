@@ -9,6 +9,10 @@ from matplotlib.backends.backend_tkagg import (FigureCanvasTkAgg, NavigationTool
 class LaunchWindow:
     def __init__(self, root):
         self.root = root
+        root.geometry("500x500")
+
+        self.header_font = ("Leelawadee", 15, "bold")
+        self.data_title_font = ("Leelawadee", 12, "bold")
 
         #--------------------
         # HEADER
@@ -16,8 +20,12 @@ class LaunchWindow:
         header = Frame(root, background="#27124d")
         header.pack(side=TOP, expand=False, fill=X)
 
-        title = Label(header, text="TITLE")
+        title = Label(header, text="Device Monitor", fg="white", background="#27124d")
+        title.config(font=self.header_font)
         title.pack(side=LEFT, padx=10, pady=10)
+
+        exit_button = ttk.Button(header, text="Exit", style='W.TButton', command=self.quit)
+        exit_button.pack(padx=20, pady=20, side=RIGHT)
 
         #--------------------
         # BODY
@@ -25,29 +33,51 @@ class LaunchWindow:
         body = Frame(root)
         body.pack(side=TOP, expand=True, fill=BOTH)
 
-        section1 = Frame(body, background="red")
+        section1 = Frame(body)
         section1.pack(side=TOP, expand=False, fill=X)
 
         instructions = Label(section1, text="Enter your device information:")
         instructions.pack(padx=10, pady=10)
 
-        section2 = Frame(body, background="blue")
+        section2 = Frame(body)
         section2.pack(side=TOP, expand=False, fill=X)
 
         method_label = Label(section2, text="Choose the method of connection:")
         method_label.pack(padx=10, pady=10)
 
-        section3 = Frame(body, background="green")
+        connection_method = StringVar(root, "1")
+
+        values = {"USB Connection" : "1",
+                  "Bluetooth Connection" : "2"}
+        
+        for (text, value) in values.items():
+            Radiobutton(section2, text=text, variable=connection_method, value=value, indicator = 0, background="light gray").pack(pady=5)
+
+        section3 = Frame(body)
         section3.pack(side=TOP, expand=False, fill=X)
 
         com_label = Label(section3, text="Enter the COM port of your device:")
         com_label.pack(padx=10, pady=10)
 
-        section4 = Frame(body, background="yellow")
+        com_num = Entry(section3)
+        com_num.insert(0, "")
+        com_num.pack(padx=5, pady=5)
+
+        section4 = Frame(body)
         section4.pack(side=TOP, expand=False, fill=X)
 
-        baud_label = Label(section1, text="Enter the baud rate of connetion:")
+        baud_label = Label(section4, text="Enter the baud rate of connetion:")
         baud_label.pack(padx=10, pady=10)
+
+        baud = Entry(section4)
+        baud.insert(0, "")
+        baud.pack(padx=5, pady=5)
+
+        start_button = ttk.Button(section4, text="Start Monitor", style='W.TButton', command=self.quit)
+        start_button.pack(padx=20, pady=20, side=BOTTOM)
+
+    def quit(self):
+        exit(1)
 
 class MainWindow:
     def __init__(self, root):
@@ -58,7 +88,6 @@ class MainWindow:
         self.data_title_font = ("Leelawadee", 12, "bold")
 
         style = Style()
-
         style.configure('W.TButton', font=('calibri', 10, 'bold'))
 
         #--------------------
