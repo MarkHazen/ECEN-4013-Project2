@@ -194,8 +194,7 @@ void loop() {
 
     dataString += String(ang_x); dataString += String(",");
     dataString += String(ang_y); dataString += String(",");
-    dataString += String(ang_z); dataString += String("||");
-    dataString += String(current_ticks);
+    dataString += String(ang_z);
 
     Serial.println(dataString);
 
