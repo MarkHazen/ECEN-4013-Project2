@@ -6,6 +6,8 @@
 #include <SPI.h>
 #include <SD.h>
 
+#define VBATPIN A7
+
 Adafruit_BNO055 bno = Adafruit_BNO055(55);
 Adafruit_GPS GPS(&Wire);
 
@@ -45,6 +47,7 @@ void search_led_pattern(int led_pin) {
 
 void setup() {
     Serial.begin(9600);
+    Serial1.begin(9600);
     
     pinMode(gps_search_led, OUTPUT);
 
@@ -64,8 +67,6 @@ void setup() {
     delay(100);
 
     if(use_multiple_led) pinMode(gps_lock_led, OUTPUT);
-
-    while(!Serial);
     
     if(!bno.begin()) {
         Serial.println("[Error]: BNO055 INIT FAIL");
@@ -105,7 +106,6 @@ void loop() {
     bno.getEvent(&orientationData, Adafruit_BNO055::VECTOR_EULER);
     bno.getEvent(&linearAccelData, Adafruit_BNO055::VECTOR_LINEARACCEL);
     bno.getEvent(&magnetometerData, Adafruit_BNO055::VECTOR_MAGNETOMETER);
-
     float ang_x = orientationData.orientation.x;
     float ang_y = orientationData.orientation.y;
     float ang_z = orientationData.orientation.z;
@@ -117,6 +117,13 @@ void loop() {
     float mag_x = magnetometerData.magnetic.x;
     float mag_y = magnetometerData.magnetic.y;
     float mag_z = magnetometerData.magnetic.z;
+
+    imu::Quaternion quat = bno.getQuat();
+
+    float q_w = quat.w();
+    float q_x = quat.x();
+    float q_y = quat.y();
+    float q_z = quat.z();
 
     //---------------------
     // GPS MEASUREMENTS
@@ -170,11 +177,21 @@ void loop() {
         lon = 0.0;
         alt = 0.0;
     }
+
+    //---------------------
+    // VOLTAGE MEASUREMENT
+    //---------------------
+    float measuredvbat = analogRead(VBATPIN);
+    measuredvbat *= 2;    // we divided by 2, so multiply back
+    measuredvbat *= 3.3;  // Multiply by 3.3V, our reference voltage
+    measuredvbat /= 1024; // convert to voltage
     
     //---------------------
     // FORMAT DATA
     //---------------------
     String dataString = "";
+
+    dataString += String(measuredvbat); dataString += String(",");
 
     dataString += String(date); dataString += String(",");
     dataString += String(time); dataString += String(",");
@@ -194,9 +211,16 @@ void loop() {
 
     dataString += String(ang_x); dataString += String(",");
     dataString += String(ang_y); dataString += String(",");
-    dataString += String(ang_z);
+    dataString += String(ang_z); dataString += String(",");
+    
+    dataString += String(q_w); dataString += String(",");
+    dataString += String(q_x); dataString += String(",");
+    dataString += String(q_y); dataString += String(",");
+    dataString += String(q_z);
 
     Serial.println(dataString);
+
+    Serial1.println(dataString);
 
     //---------------------
     // SD CARD LOGGING

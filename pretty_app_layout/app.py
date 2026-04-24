@@ -1,3 +1,4 @@
+import serial
 import numpy as np
 import tkinter as tk
 
@@ -152,6 +153,8 @@ class MainWindow(tk.Frame):
         tk.Frame.__init__(self, parent)
 
         self.controller = controller
+        self.ser = None
+        self.line = ""
 
         self.header_font = ("Leelawadee", 15, "bold")
         self.data_title_font = ("Leelawadee", 12, "bold")
@@ -165,13 +168,13 @@ class MainWindow(tk.Frame):
         header = Frame(self, background="#27124d")
         header.pack(side=TOP, expand=False, fill=X)
 
-        connected_header = Label(header, text="Device Connected at: COM9, 9600 baud", fg="white", background="#27124d")
-        connected_header.config(font=self.header_font)
-        connected_header.pack(padx=20, pady=20, side=LEFT)
+        self.connected_header = Label(header, text="Device Connected at: COM9, 9600 baud", fg="white", background="#27124d")
+        self.connected_header.config(font=self.header_font)
+        self.connected_header.pack(padx=20, pady=20, side=LEFT)
 
-        battery_header = Label(header, text="Voltage: 3.7V", fg="white", background="#27124d")
-        battery_header.config(font=self.header_font)
-        battery_header.pack(padx=0, pady=20, side=LEFT)
+        self.battery_header = Label(header, text="Voltage: 3.7V", fg="white", background="#27124d")
+        self.battery_header.config(font=self.header_font)
+        self.battery_header.pack(padx=0, pady=20, side=LEFT)
 
         exit_button = ttk.Button(header, text="Exit", style='W.TButton', command=self.quit)
         exit_button.pack(padx=20, pady=20, side=RIGHT)
@@ -204,8 +207,8 @@ class MainWindow(tk.Frame):
         #--------------------
         # SERIAL MONITOR
         #--------------------
-        serial_output = Text(tab1)
-        serial_output.pack(fill=BOTH, expand=True)
+        self.serial_output = Text(tab1)
+        self.serial_output.pack(fill=BOTH, expand=True)
 
         # --------------------
         # 3D PLOT
@@ -236,20 +239,20 @@ class MainWindow(tk.Frame):
         ang_title = Label(top_right, text="Angular Rotation")
         ang_title.pack(padx=5, pady=5)
 
-        ang_data_label = Label(top_right, text="X: 123.123 | Y: 321.321 | Z: 456.654")
-        ang_data_label.pack(padx=5, pady=0)
+        self.ang_data_label = Label(top_right, text="X: 123.123 | Y: 321.321 | Z: 456.654")
+        self.ang_data_label.pack(padx=5, pady=0)
 
         acc_title = Label(top_right, text="Linear Acceleration")
         acc_title.pack(padx=5, pady=5)
 
-        acc_data_label = Label(top_right, text="X: 123.123 | Y: 321.321 | Z: 456.654")
-        acc_data_label.pack(padx=5, pady=0)
+        self.acc_data_label = Label(top_right, text="X: 123.123 | Y: 321.321 | Z: 456.654")
+        self.acc_data_label.pack(padx=5, pady=0)
 
         mag_title = Label(top_right, text="Magnetic Field")
         mag_title.pack(padx=5, pady=5)
 
-        mag_data_label = Label(top_right, text="X: 123.123 | Y: 321.321 | Z: 456.654")
-        mag_data_label.pack(padx=5, pady=0)
+        self.mag_data_label = Label(top_right, text="X: 123.123 | Y: 321.321 | Z: 456.654")
+        self.mag_data_label.pack(padx=5, pady=0)
     
 
         #--------------------
@@ -261,33 +264,125 @@ class MainWindow(tk.Frame):
         label2_2.pack(padx=20, pady=10)
         bottom_right.pack(side=TOP, expand=True, fill=BOTH)
 
-        locked_label = Label(bottom_right, text="GPS Locked: FALSE")
-        locked_label.pack(padx=5, pady=5)
+        self.locked_label = Label(bottom_right, text="GPS Locked: FALSE")
+        self.locked_label.pack(padx=5, pady=5)
 
-        sat_label = Label(bottom_right, text="Satilites Obtained: 0")
-        sat_label.pack(padx=5, pady=5)
+        self.sat_label = Label(bottom_right, text="Satilites Obtained: 0")
+        self.sat_label.pack(padx=5, pady=5)
 
         dt_title = Label(bottom_right, text="Date and Time")
         dt_title.pack(padx=5, pady=5)
 
-        dt_label = Label(bottom_right, text="00/00/0000 | 00:00:00")
-        dt_label.pack(padx=5, pady=0)
+        self.dt_label = Label(bottom_right, text="00/00/0000 | 00:00:00")
+        self.dt_label.pack(padx=5, pady=0)
 
         pos_title = Label(bottom_right, text="Position")
         pos_title.pack(padx=5, pady=5)
 
-        pos_label = Label(bottom_right, text="Latitude: 987.789 | Longitude: 789:987")
-        pos_label.pack(padx=5, pady=0)
+        self.pos_label = Label(bottom_right, text="Latitude: 987.789 | Longitude: 789:987")
+        self.pos_label.pack(padx=5, pady=0)
 
         alt_title = Label(bottom_right, text="Altitude")
         alt_title.pack(padx=5, pady=5)
 
-        alt_title = Label(bottom_right, text="Height: 687.5309")
-        alt_title.pack(padx=5, pady=0)
+        self.alt_label = Label(bottom_right, text="Height: 687.5309")
+        self.alt_label.pack(padx=5, pady=0)
 
+    #--------------------
+    # WINDOW FUNCTIONS
+    #--------------------
+    def on_show(self):
+        com = self.controller.com
+        baud = self.controller.baud
+
+        self.connected_header.config(text=f"Device Connected at: COM{com}, {baud} baud")
+
+        self.start_serial(com, baud)
+    
     def quit(self):
         self.controller.destroy()
 
+    #--------------------
+    # SERIAL
+    #--------------------
+    def start_serial(self, port, baud):
+        try:
+            self.ser = serial.Serial(port=f"COM{port}", baudrate=int(baud), timeout=1)
+            self.read_serial()
+        except Exception as e:
+            print("Error:", e)
+            if self.ser and self.ser.is_open: self.ser.close()
+            self.controller.show_frame(LaunchWindow)
+
+    def read_serial(self):
+        if self.ser and self.ser.in_waiting:
+            try:
+                self.line = self.ser.readline().decode('utf-8').strip()
+                self.serial_output.insert(tk.END, self.line + "\n")
+                self.serial_output.see(tk.END)
+            except:
+                pass
+
+        print(self.line)
+        values = self.line.split(',')
+        
+        try:
+            voltage = values[0]
+
+            date = values[1]
+            time = values[2]
+            
+            sat_num = int(values[3])
+            lat = float(values[4])
+            lon = float(values[5])
+            alt = float(values[6])
+
+            acc_x = float(values[7])
+            acc_y = float(values[8])
+            acc_z = float(values[9])
+
+            mag_x = float(values[10])
+            mag_y = float(values[11])
+            mag_z = float(values[12])
+
+            ang_x = float(values[13])
+            ang_y = float(values[14])
+            ang_z = float(values[15])
+
+            q_w = float(values[16])
+            q_x = float(values[17])
+            q_y = float(values[18])
+            q_z = float(values[19])
+
+            self.update_quaternion(q_w, q_x, q_y, q_z)
+
+            self.battery_header.config(text=f"Voltage: {voltage}V")
+
+            self.ang_data_label.config(text=f"X: {ang_x} | Y: {ang_y} | Z: {ang_z}")
+            self.acc_data_label.config(text=f"X: {acc_x} | Y: {acc_y} | Z: {acc_z}")
+            self.mag_data_label.config(text=f"X: {mag_x} | Y: {mag_y} | Z: {mag_z}")
+
+            if date == "XX/XX/XXXX":
+                self.locked_label.config(text="GPS Locked: FALSE")
+                self.sat_label.config(text=f"Satilites Obtained: 0")
+                self.dt_label.config(text=f"00/00/0000 | 00:00:00")
+                self.pos_label.config(text=f"Latitude: NaN | Longitude: NaN")
+                self.alt_label.config(text=f"Height: NaN")
+            else:
+                self.locked_label.config(text="GPS Locked: TRUE")
+                self.sat_label.config(text=f"Satilites Obtained: {sat_num}")
+                self.dt_label.config(text=f"{date} | {time}")
+                self.pos_label.config(text=f"Latitude: {lat} | Longitude: {lon}")
+                self.alt_label.config(text=f"Height: {alt}")
+
+        except:
+            pass
+
+        self.after(50, self.read_serial)
+
+    #--------------------
+    # PLOTTING
+    #--------------------
     def quat_to_euler(self, q):
         w, x, y, z = q
 
@@ -310,7 +405,16 @@ class MainWindow(tk.Frame):
         return elev, azim, roll
     
     def init_3d_plot(self):
-        r = [0, 1]
+        r = [-0.5, 0.5]
+
+        self.vertices = np.array(list(product(r, r, r)))
+
+        self.edges = []
+        for i, start in enumerate(self.vertices):
+            for j, end in enumerate(self.vertices):
+                if np.sum(np.abs(start - end)) == 1:
+                    self.edges.append((i, j))
+
         scale = np.array([1, 1, 1])  # normalize cube
 
         for start, end in combinations(np.array(list(product(r, r, r))), 2):
@@ -325,19 +429,39 @@ class MainWindow(tk.Frame):
         self.ax3d.set_ylim(-1, 1)
         self.ax3d.set_zlim(-1, 1)
 
+    def quat_to_rot_matrix(self, q):
+        w, x, y, z = q
+
+        return np.array([
+            [1 - 2*(y*y + z*z),     2*(x*y - z*w),     2*(x*z + y*w)],
+            [2*(x*y + z*w),         1 - 2*(x*x + z*z), 2*(y*z - x*w)],
+            [2*(x*z - y*w),         2*(y*z + x*w),     1 - 2*(x*x + y*y)]
+        ])
+
     def update_quaternion(self, w, x, y, z):
-        self.current_quat = np.array([w, x, y, z])
+        q = np.array([w, x, y, z])
+        q = q / np.linalg.norm(q)
+        self.current_quat = q
 
     def update_3d_plot(self):
-        q = self.current_quat
+        self.ax3d.cla()
 
-        elev, azim, roll = self.quat_to_euler(q)
+        R = self.quat_to_rot_matrix(self.current_quat)
+        rotated = self.vertices @ R.T
 
-        self.ax3d.view_init(elev=elev, azim=azim)
-        self.ax3d.set_title(f"elev={elev:.1f}, azim={azim:.1f}, roll={roll:.1f}")
+        for i, j in self.edges:
+            self.ax3d.plot3D(*zip(rotated[i], rotated[j]))
 
-        self.canvas.draw()
+        self.ax3d.set_xlim(-1, 1)
+        self.ax3d.set_ylim(-1, 1)
+        self.ax3d.set_zlim(-1, 1)
+        self.ax3d.set_box_aspect([1, 1, 1])
 
+        self.ax3d.set_xlabel("X")
+        self.ax3d.set_ylabel("Y")
+        self.ax3d.set_zlabel("Z")
+
+        self.canvas.draw_idle()
         self.after(30, self.update_3d_plot)
 
 app = app()
